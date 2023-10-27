@@ -6,7 +6,7 @@
 # Dereplication workflow parameters
 which_raw_data_directory <- "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/"
 which_plate_metadata <- "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/Report_Step3a_scdPlates_PatientID_K0073_KoelnFMT_2023.09.15_10.07.19.xlsx"
-
+which_threshold <- 0.92
 
 # Load packages required to define the pipeline:
 library(targets)
@@ -86,5 +86,41 @@ list(
           well_number = well, plate_layout = 384
         )) %>%
       select(name, OD600, is_edge)
+  ),
+  tar_target(
+    df_interpolated,
+    delineate_with_similarity(sim_interpolated, threshold = which_threshold, method = "complete")
+  ),
+  tar_target(
+    clusters,
+    set_reference_spectra(df_interpolated, processed$metadata)
+  ),
+  tar_target(#clean up spectra names for cluster name
+    # remove trailing _B11
+    clusters_clean,
+    clusters %>% dplyr::mutate(
+      name = gsub("_[A-Z][0-9]{1,3}$","",name)
+    )
+  ),
+  tar_target(
+    # subset metadata information
+    metadata_subset,
+    metadata_picking %>% semi_join(clusters_clean, by = "name")
+  ),
+  tar_target(
+    picked,
+    pick_spectra(
+      cluster_df = clusters_clean,
+      metadata_df = metadata_subset,
+      criteria_column = "OD600",
+      soft_mask_column = "is_edge")),
+  tar_target(
+    summary_picked,
+    picked %>% filter(to_pick) %>%
+      transmute(
+        name = name,
+        cluster_size = cluster_size,
+        procedure = paste("Strejcek", which_threshold, sep = "_")
+      )
   )
 )
