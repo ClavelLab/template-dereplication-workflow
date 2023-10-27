@@ -1,3 +1,12 @@
+# Template for MALDI Biotyper dereplication workflow
+# Charlie Pauvert
+# Created: 2023-10-27
+
+
+# Dereplication workflow parameters
+which_raw_data_directory <- "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/"
+
+
 # Load packages required to define the pipeline:
 library(targets)
 
@@ -13,9 +22,7 @@ options(clustermq.scheduler = "multicore")
 # Run the R scripts in the R/ folder with your custom functions:
 tar_source()
 
-# Parameters
-which_raw_data_directory <- "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/"
-
+# Workflow
 list(
   tar_target(
     raw_data_dir,
