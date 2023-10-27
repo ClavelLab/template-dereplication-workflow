@@ -37,6 +37,12 @@ list(
     checks,
     check_spectra(spectra_raw, tolerance = 1)
   ),
+  tar_target(
+    problematic_spectra,
+    # Logical 'OR' combinations of checks vectors
+    # src: https://stackoverflow.com/a/51140480/21085566
+    Reduce(`|`, checks)
+  ),
   tar_target(#Stats: total spectra, total empty spectra
     spectra_stats,
     tibble(
@@ -44,13 +50,13 @@ list(
       n_empty = sum(checks$is_empty)
     )
   ),
-  tar_target( # Filter non empty spectra and unusual spectra
-    nonempty_spectra,
-    spectra_raw[!checks$is_empty]
+  tar_target( # Filter-out non empty spectra and unusual spectra
+    valid_spectra,
+    spectra_raw[!problematic_spectra]
   ),
   tar_target(
     processed,
-    process_spectra(nonempty_spectra)
+    process_spectra(valid_spectra)
   ),
   tar_target(
     fm_interpolated,
