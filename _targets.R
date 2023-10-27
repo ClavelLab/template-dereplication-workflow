@@ -122,5 +122,26 @@ list(
         cluster_size = cluster_size,
         procedure = paste("Strejcek", which_threshold, sep = "_")
       )
+  ),
+  tar_target(# prep excel sheet
+    prep_excel,
+    metadata %>% 
+      left_join(
+        picked %>% transmute(
+          `Well SampleName` = name,
+          `Well Selected_MALDI_hits` = as.integer(to_pick)
+        ), by = "Well SampleName"
+      ) %>%
+      mutate(
+        `Well Selected_MALDI_hits` = replace_na(`Well Selected_MALDI_hits`, 0)
+      )
+  ),
+  tar_target(
+    excel_output,
+    write_xlsx(prep_excel,
+               path = paste0(
+                 "picked_",paste("Strejcek", which_threshold, sep = "_"),
+                 "_",basename(which_plate_metadata))
+    )
   )
 )
