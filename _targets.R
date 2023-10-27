@@ -43,12 +43,9 @@ list(
     # src: https://stackoverflow.com/a/51140480/21085566
     Reduce(`|`, checks)
   ),
-  tar_target(#Stats: total spectra, total empty spectra
+  tar_target(
     spectra_stats,
-    tibble(
-      n_spectra = length(checks$is_empty),
-      n_empty = sum(checks$is_empty)
-    )
+    gather_spectra_stats(checks, problematic_spectra)
   ),
   tar_target( # Filter-out non empty spectra and unusual spectra
     valid_spectra,
