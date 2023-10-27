@@ -5,6 +5,7 @@
 
 # Dereplication workflow parameters
 which_raw_data_directory <- "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/"
+which_plate_metadata <- "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/Report_Step3a_scdPlates_PatientID_K0073_KoelnFMT_2023.09.15_10.07.19.xlsx"
 
 
 # Load packages required to define the pipeline:
@@ -16,7 +17,7 @@ tar_option_set(
                "MALDIquant","readxl","writexl"),
   # packages that your targets need to run
   format = "rds" # default storage format
-  )
+)
 options(clustermq.scheduler = "multicore")
 
 # Run the R scripts in the R/ folder with your custom functions:
@@ -62,5 +63,28 @@ list(
   tar_target(
     sim_interpolated,
     coop::tcosine(fm_interpolated)
+  ),
+  tar_target(
+    excel_metadata,
+    which_plate_metadata,
+    format = "file"
+  ),
+  tar_target(# Get metadata from excel sheet)
+    metadata,
+    read_excel(excel_metadata) %>%
+      select(-c("Well Selected_MALDI_hits"))
+  ),
+  tar_target(
+    metadata_picking,
+    metadata %>% rename(
+      c("OD600" = "Well OD600_BlankCorrected_MALDI_Step2_2Tag",
+        "name" = "Well SampleName")) %>%
+      dplyr::mutate(
+        well = gsub(".*_([0-9]{1,3}$)", "\\1", name) %>%
+          strtoi(),
+        is_edge = maldipickr::is_well_on_edge(
+          well_number = well, plate_layout = 384
+        )) %>%
+      select(name, OD600, is_edge)
   )
 )
