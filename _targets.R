@@ -1,6 +1,5 @@
 # Load packages required to define the pipeline:
 library(targets)
-# library(tarchetypes) # Load other packages as needed.
 
 # Set target options:
 tar_option_set(
@@ -25,7 +24,7 @@ list(
   ),
   tar_target(
     spectra_raw,
-    import_biotyper_spectra(raw_data_dir)
+    import_biotyper_spectra(raw_data_dir) %>% suppressWarnings()
   ),
   tar_target(
     checks,
