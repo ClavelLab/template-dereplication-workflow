@@ -53,12 +53,16 @@ list(
   tar_target(
     spectra_stats,
     gather_spectra_stats(checks, problematic_spectra),
-    pattern = map(checks)
+    pattern = map(checks, problematic_spectra)
   ),
   tar_target( # Filter-out non empty spectra and unusual spectra
     valid_spectra,
     spectra_raw[!problematic_spectra],
     pattern = map(problematic_spectra)
+  ),
+  tar_target(
+    all_stats,
+    dplyr::bind_rows(spectra_stats)
   )#,
   # tar_target(
   #   processed,
