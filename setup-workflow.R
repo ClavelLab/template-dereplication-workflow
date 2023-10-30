@@ -1,13 +1,16 @@
-# Template for MALDI Biotyper dereplication workflow
+# Set-up workflow template for MALDI Biotyper dereplication workflow
 # Charlie Pauvert
 # Created: 2023-10-27
 
-
 # Dereplication workflow parameters
-which_raw_data_directory <- "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/"
-which_plate_metadata <- "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/Report_Step3a_scdPlates_PatientID_K0073_KoelnFMT_2023.09.15_10.07.19.xlsx"
-which_threshold <- 0.92
-
+settings <- list(
+  which_raw_data_directory = "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/",
+  which_plate_metadata = "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/Report_Step3a_scdPlates_PatientID_K0073_KoelnFMT_2023.09.15_10.07.19.xlsx",
+  which_threshold = 0.92
+)
+targets::tar_helper(
+  path = "_targets.R",
+  code = {
 # Load packages required to define the pipeline:
 library(targets)
 
@@ -27,7 +30,7 @@ tar_source()
 list(
   tar_target(
     raw_data_dir,
-    which_raw_data_directory,
+    !!settings$which_raw_data_directory,
     format = "file"
   ),
   tar_target(
@@ -66,7 +69,7 @@ list(
   ),
   tar_target(
     excel_metadata,
-    which_plate_metadata,
+    !!settings$which_plate_metadata,
     format = "file"
   ),
   tar_target(# Get metadata from excel sheet)
@@ -89,7 +92,7 @@ list(
   ),
   tar_target(
     df_interpolated,
-    delineate_with_similarity(sim_interpolated, threshold = which_threshold, method = "complete")
+    delineate_with_similarity(sim_interpolated, threshold = !!settings$which_threshold, method = "complete")
   ),
   tar_target(
     clusters,
@@ -120,7 +123,7 @@ list(
       transmute(
         name = name,
         cluster_size = cluster_size,
-        procedure = paste("Strejcek", which_threshold, sep = "_")
+        procedure = paste("Strejcek", !!settings$which_threshold, sep = "_")
       )
   ),
   tar_target(# prep excel sheet
@@ -140,8 +143,9 @@ list(
     excel_output,
     write_xlsx(prep_excel,
                path = paste0(
-                 "picked_",paste("Strejcek", which_threshold, sep = "_"),
-                 "_",basename(which_plate_metadata))
+                 "picked_",paste("Strejcek", !!settings$which_threshold, sep = "_"),
+                 "_",basename(!!settings$which_plate_metadata))
     )
   )
 )
+  })

@@ -11,6 +11,6 @@
 
 1. Clone the repository
 2. Set up the dependencies using `renv::restore()`
-3. Fill out the needed parameters in `_targets.R`
-4. Evaluate the workflow using `targets::tar_manifest()`
+3. Fill out the needed parameters/settings in [`setup-workflow.R`](setup-workflow.R) and run the R code to create `_targets.R`
+4. Evaluate the workflow using `targets::tar_manifest()` or using `targets::tar_visnetwork()`
 5. Run the workflow with `targets::tar_make()` 
