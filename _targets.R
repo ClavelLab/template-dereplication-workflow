@@ -63,15 +63,16 @@ list(
   tar_target(
     all_stats,
     dplyr::bind_rows(spectra_stats)
+  ),
+  tar_target(
+    processed,
+    process_spectra(valid_spectra),
+    pattern = map(valid_spectra)
+  ),
+  tar_target(
+    fm_interpolated,
+    merge_processed_spectra(processed)
   )#,
-  # tar_target(
-  #   processed,
-  #   process_spectra(valid_spectra)
-  # ),
-  # tar_target(
-  #   fm_interpolated,
-  #   merge_processed_spectra(list(processed))
-  # ),
   # tar_target(
   #   sim_interpolated,
   #   coop::tcosine(fm_interpolated)
