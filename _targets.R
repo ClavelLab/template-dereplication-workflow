@@ -58,7 +58,7 @@ list(
   tar_target( # Filter-out non empty spectra and unusual spectra
     valid_spectra,
     spectra_raw[!problematic_spectra],
-    pattern = map(problematic_spectra)
+    pattern = map(spectra_raw, problematic_spectra)
   ),
   tar_target(
     all_stats,
