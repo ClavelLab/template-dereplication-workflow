@@ -167,5 +167,6 @@ list(
                  "picked_",paste("Strejcek", which_threshold, sep = "_"),
                  "_",basename(which_plate_metadata))
     )
-  )
+  ),
+  tar_quarto(report, "report.qmd")
 )
