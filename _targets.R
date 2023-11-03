@@ -71,7 +71,9 @@ list(
   ),
   tar_target(
     fm_interpolated,
-    merge_processed_spectra(processed)
+    # Named lists are problematic for dynamic branching
+    # as the name are appended to the matrix rownames
+    merge_processed_spectra(unname(processed))
   )#,
   # tar_target(
   #   sim_interpolated,
