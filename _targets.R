@@ -53,7 +53,8 @@ list(
   tar_target(
     spectra_stats,
     gather_spectra_stats(checks, problematic_spectra),
-    pattern = map(checks, problematic_spectra)
+    pattern = map(checks, problematic_spectra),
+    iteration = "vector"
   ),
   tar_target( # Filter-out non empty spectra and unusual spectra
     valid_spectra,
