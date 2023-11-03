@@ -107,8 +107,15 @@ list(
     delineate_with_similarity(sim_interpolated, threshold = which_threshold, method = "complete")
   ),
   tar_target(
+    processed_metadata,
+    dplyr::bind_rows(
+      lapply(processed, `[[`, "metadata")
+    ),
+    iteration = "list"
+  ),
+  tar_target(
     clusters,
-    set_reference_spectra(df_interpolated, processed$metadata)
+    set_reference_spectra(df_interpolated, processed_metadata)
   ),
   tar_target(#clean up spectra names for cluster name
     # remove trailing _B11
