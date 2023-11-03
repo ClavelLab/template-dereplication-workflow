@@ -52,8 +52,9 @@ list(
   ),
   tar_target(
     spectra_stats,
-    gather_spectra_stats(checks, problematic_spectra),
-    pattern = map(checks, problematic_spectra),
+    gather_spectra_stats(checks, problematic_spectra) %>%
+      dplyr::mutate(maldi_plate = plates),
+    pattern = map(checks, problematic_spectra, plates),
     iteration = "vector"
   ),
   tar_target( # Filter-out non empty spectra and unusual spectra
