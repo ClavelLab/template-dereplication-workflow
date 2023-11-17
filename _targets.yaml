@@ -1,0 +1,3 @@
+fast_growers:
+  script: targets_fast_growers.R
+  store: fast_growers
