@@ -2,9 +2,8 @@
 # Charlie Pauvert
 # Created: 2023-10-27
 
-here::i_am("targets_fast_growers.R")
 # Dereplication workflow parameters
-which_plate_metadata <- here::here("data", "20230915_testRun_Sample_K0073","Report_Step3a_scdPlates_PatientID_K0073_KoelnFMT_2023.09.15_10.07.19.xlsx")
+which_plate_metadata <- here::here("data", "20230920_testRun_Sample_K0073","Report_Step3a_scdPlates_PatientID_K0073_KoelnFMT_2023.09.20_08.52.01.xlsx")
 which_threshold <- 0.92
 
 # Load packages required to define the pipeline:
@@ -29,7 +28,7 @@ list(
   tarchetypes::tar_files(
     plates,
     list.dirs(
-      here::here("data","20230915_testRun_Sample_K0073/"),
+      here::here("data","20230920_testRun_Sample_K0073/"),
       recursive = F)
   ),
   tar_target(
@@ -71,13 +70,19 @@ list(
     pattern = map(valid_spectra)
   ),
   tar_target(
-    fast_processed, unname(c(processed))
+    slow_processed, unname(c(processed))
+  ),
+  tar_target(
+    fast_processed_path, "fast_growers/objects/fast_processed", format = "file"
+  ),
+  tar_target(
+    fast_processed, readRDS(fast_processed_path)
   ),
   tar_target(
     fm_interpolated,
     # Named lists are problematic for dynamic branching
     # as the name are appended to the matrix rownames
-    merge_processed_spectra(fast_processed)
+    merge_processed_spectra(c(fast_processed, slow_processed))
   ),
   tar_target(
     sim_interpolated,
@@ -90,21 +95,23 @@ list(
   ),
   tar_target(# Get metadata from excel sheet)
     metadata,
-    read_excel(excel_metadata) %>%
-      select(-c("Well Selected_MALDI_hits"))
+    read_excel(excel_metadata)
   ),
   tar_target(
     metadata_picking,
     metadata %>% rename(
-      c("OD600" = "Well OD600_BlankCorrected_MALDI_Step2_2Tag",
-        "name" = "Well SampleName")) %>%
+      c("OD600" = "Well OD600_BlankCorrected_MALDI_Step2_7Tag",
+        "name" = "Well SampleName",
+        "picked_before" = "Well Selected_MALDI_hits")) %>%
       dplyr::mutate(
+        OD600 = as.double(OD600),
+        picked_before = as.logical(strtoi(picked_before)),
         well = gsub(".*_([0-9]{1,3}$)", "\\1", name) %>%
           strtoi(),
         is_edge = maldipickr::is_well_on_edge(
           well_number = well, plate_layout = 384
         )) %>%
-      select(name, OD600, is_edge)
+      select(name, OD600, is_edge, picked_before)
   ),
   tar_target(
     df_interpolated,
@@ -113,7 +120,7 @@ list(
   tar_target(
     processed_metadata,
     dplyr::bind_rows(
-      lapply(processed, `[[`, "metadata")
+      lapply(c(fast_processed,slow_processed), `[[`, "metadata")
     ),
     iteration = "list"
   ),
@@ -139,28 +146,31 @@ list(
       cluster_df = clusters_clean,
       metadata_df = metadata_subset,
       criteria_column = "OD600",
-      soft_mask_column = "is_edge")),
+      soft_mask_column = "is_edge",
+      hard_mask_column = "picked_before")),
   tar_target(
     summary_picked,
     picked %>% filter(to_pick) %>%
       transmute(
         name = name,
         cluster_size = cluster_size,
+        picked_before = picked_before,
         procedure = paste("Strejcek", which_threshold, sep = "_")
       )
   ),
   tar_target(# prep excel sheet
     prep_excel,
-    metadata %>%
+    metadata %>% select(-c("Well Selected_MALDI_hits")) %>% 
       left_join(
         picked %>% transmute(
           `Well SampleName` = name,
-          `Well Selected_MALDI_hits` = as.integer(to_pick)
+          decision = if_else(to_pick, 2, 0),
+          `Well Selected_MALDI_hits` = as.integer(picked_before) + decision
         ), by = "Well SampleName"
       ) %>%
       mutate(
         `Well Selected_MALDI_hits` = replace_na(`Well Selected_MALDI_hits`, 0)
-      )
+      ) %>% select(-c(decision))
   ),
   tar_target(
     excel_output,
@@ -174,5 +184,5 @@ list(
                  )
     )
   ),
-  tar_quarto(report, "report.qmd")
+  tar_quarto(report, "report_slow.qmd")
 )

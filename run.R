@@ -9,5 +9,7 @@
 # https://books.ropensci.org/targets/projects.html#run-each-project
 Sys.setenv(TAR_PROJECT = "fast_growers")
 targets::tar_make()
+Sys.setenv(TAR_PROJECT = "slow_growers")
+targets::tar_make()
 # targets::tar_make_clustermq(workers = 2) # nolint
 # targets::tar_make_future(workers = 2) # nolint

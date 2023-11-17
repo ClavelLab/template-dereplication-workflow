@@ -1,3 +1,6 @@
 fast_growers:
   script: targets_fast_growers.R
   store: fast_growers
+slow_growers:
+  script: targets_slow_growers.R
+  store: slow_growers
