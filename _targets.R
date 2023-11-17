@@ -2,10 +2,9 @@
 # Charlie Pauvert
 # Created: 2023-10-27
 
-
+here::i_am("_targets.R")
 # Dereplication workflow parameters
-which_raw_data_directory <- "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/"
-which_plate_metadata <- "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/Report_Step3a_scdPlates_PatientID_K0073_KoelnFMT_2023.09.15_10.07.19.xlsx"
+which_plate_metadata <- here::here("data", "20230915_testRun_Sample_K0073","Report_Step3a_scdPlates_PatientID_K0073_KoelnFMT_2023.09.15_10.07.19.xlsx")
 which_threshold <- 0.92
 
 # Load packages required to define the pipeline:
@@ -30,7 +29,7 @@ list(
   tarchetypes::tar_files(
     plates,
     list.dirs(
-      "/home/cpauvert/projects/iSOMiC/MALDI/dereplication/datasets/20230915_testRun_Sample_K0073/",
+      here::here("data","20230915_testRun_Sample_K0073/"),
       recursive = F)
   ),
   tar_target(
@@ -163,9 +162,13 @@ list(
   tar_target(
     excel_output,
     write_xlsx(prep_excel,
-               path = paste0(
-                 "picked_",paste("Strejcek", which_threshold, sep = "_"),
-                 "_",basename(which_plate_metadata))
+               path =
+                 here::here(
+                   paste0(
+                     "picked_",paste("Strejcek", which_threshold, sep = "_"),
+                     "_",basename(which_plate_metadata)
+                   )
+                 )
     )
   ),
   tar_quarto(report, "report.qmd")
