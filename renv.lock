@@ -905,13 +905,14 @@
     },
     "maldipickr": {
       "Package": "maldipickr",
-      "Version": "1.2.0",
+      "Version": "1.3.0",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "MALDIquant",
         "R",
         "dplyr",
+        "lifecycle",
         "magrittr",
         "readBrukerFlexData",
         "rlang",
@@ -922,7 +923,7 @@
         "tools",
         "utils"
       ],
-      "Hash": "d34567d3647e8901895c173a179a9cb1"
+      "Hash": "103333b0c650cd65b93c7b65cd0b80b9"
     },
     "memoise": {
       "Package": "memoise",
