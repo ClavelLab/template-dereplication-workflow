@@ -1,0 +1,2 @@
+# ignore only data folders from the root of the project
+/data/
