@@ -1,0 +1,80 @@
+---
+title: "Dereplication and cherry-picking report"
+output_format: html
+---
+
+```{r pkgs, message=FALSE, echo=FALSE}
+library(magrittr)
+library(dplyr)
+library(knitr)
+library(ggplot2)
+library(cowplot)
+```
+
+
+## Spectra quality control per-plate
+
+Table with the total number of raw spectra per plate (`n_spectra`), and the total number of valid spectra (`n_valid_specta`), that did not met any of the red flags of quality control:
+
+* the raw spectra has no data (`is_empty`)
+* the raw spectra length is different of more than 2 units (`is_outlier_length`)
+* the raw spectra was acquired correctly (`is_not_regular`)
+
+```{r qc_plate, echo=FALSE}
+targets::tar_read(spectra_stats) %>% 
+  dplyr::mutate(maldi_plate = basename(maldi_plate)) %>% 
+  dplyr::relocate(maldi_plate) %>% 
+  knitr::kable()
+```
+
+
+## Dereplication
+
+
+```{r , echo=FALSE,results='asis'}
+glue::glue(
+  "Out of {n_valid_spectra} valid spectra, ",
+  "{n_picked} spectra were picked using the {procedure} procedure.",
+  n_valid_spectra = nrow(targets::tar_read(picked)),
+  n_picked = sum(targets::tar_read(picked)[["to_pick"]]),
+  procedure = unique(targets::tar_read(summary_picked)[["procedure"]]),
+)
+```
+
+### Distribution of cluster size
+
+```{r cluster_size, fig.height=6, fig.width=5, fig.dpi=300, echo=FALSE}
+targets::tar_read(picked) %>%
+  dplyr::filter(!is_edge) %>% 
+  dplyr::arrange(cluster_size) %>%
+  dplyr::select(membership, cluster_size) %>% unique %>%
+  dplyr::mutate(membership = factor(membership, membership)) %>% 
+  ggplot(aes(x= membership, y=cluster_size))+
+  geom_point()+
+  geom_segment(aes(x=membership,xend=membership,y=0,yend=cluster_size))+
+  geom_text(aes(label = cluster_size),hjust=-.5, fontface = "bold")+
+  scale_y_continuous(expand = expansion(add = c(0, 2)))+
+  coord_flip()+
+  labs(x="Cluster numeric identifier", y = "# of spectra per cluster")+
+  theme_cowplot()
+```
+
+
+### Distribution of OD600 per cluster
+
+```{r od600, fig.height=6, fig.width=5, fig.dpi=300, echo=FALSE}
+targets::tar_read(picked) %>%
+  dplyr::filter(!is_edge) %>% 
+  dplyr::mutate(
+    membership = factor(membership),
+    membership = forcats::fct_reorder(membership, OD600,max)) %>% 
+  ggplot(aes(x= membership, y=OD600, color = to_pick))+
+  geom_point(shape = 23, stroke = 1)+
+  scale_color_brewer(palette = "Set1", direction = -1,name = "Picked isolate?", labels = c("No", "Yes"))+
+  scale_y_continuous(breaks = seq(from =0.5, to = 2.5, by=0.5))+
+  coord_flip()+
+  labs(x="Cluster numeric identifier",
+       title = "OD600 per cluster")+
+  theme_minimal_hgrid()
+```
+
