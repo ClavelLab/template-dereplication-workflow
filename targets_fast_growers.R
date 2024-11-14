@@ -174,5 +174,5 @@ list(
                  )
     )
   ),
-  tar_quarto(report, "report.qmd")
+  tar_quarto(report, "report_fast.qmd")
 )

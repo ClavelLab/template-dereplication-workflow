@@ -37,7 +37,7 @@ glue::glue(
   "{n_picked} spectra were picked using the {procedure} procedure.",
   n_valid_spectra = nrow(targets::tar_read(picked)),
   n_picked = sum(targets::tar_read(picked)[["to_pick"]]),
-  procedure = unique(targets::tar_read(summary_picked)[["procedure"]]),
+  procedure = unique(targets::tar_read(summary_picked)[["procedure"]])
 )
 ```
 
